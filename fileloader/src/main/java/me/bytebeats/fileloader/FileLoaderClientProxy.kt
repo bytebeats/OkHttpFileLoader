@@ -49,7 +49,7 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
     }
 
     @Throws(IOException::class)
-    private fun execute(request: Request): Response {
+    fun execute(request: Request): Response {
         return newCall(request).execute()
     }
 

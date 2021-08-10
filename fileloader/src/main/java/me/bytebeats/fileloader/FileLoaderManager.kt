@@ -16,7 +16,7 @@ class FileLoaderManager {
     companion object {
         private var manager: FileLoaderManager? = null
 
-        private fun getInstance(): FileLoaderManager {
+        fun getInstance(): FileLoaderManager {
             if (manager == null) {
                 manager = FileLoaderManager()
             }
