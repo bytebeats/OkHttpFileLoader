@@ -49,7 +49,7 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
     }
 
     @Throws(IOException::class)
-    private fun execute(request: Request): Response {
+    fun execute(request: Request): Response {
         return newCall(request).execute()
     }
 
@@ -57,7 +57,7 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
         newCall(request).enqueue(callback)
     }
 
-    private fun buildRequest(url: String, headers: Map<String, String>?, tag: String): Request {
+    private fun buildRequest(url: String, headers: Map<String, String>?, tag: String?): Request {
         val builder = Request.Builder().url(url).tag(tag)
         headers?.let {
             it.entries.forEach { entry ->
@@ -67,7 +67,7 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
         return builder.build()
     }
 
-    fun doGet(url: String, headers: Map<String, String>?, tag: String): String? {
+    fun doGet(url: String, headers: Map<String, String>?, tag: String?): String? {
         val resp = execute(buildRequest(url, headers, tag))
         return if (resp.isSuccessful) {
             resp.body?.string()
@@ -76,12 +76,12 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
         }
     }
 
-    fun doGetAsync(url: String, headers: Map<String, String>?, tag: String, callback: Callback) {
+    fun doGetAsync(url: String, headers: Map<String, String>?, tag: String?, callback: Callback) {
         executeAsync(buildRequest(url, headers, tag), callback)
     }
 
     @Throws(IOException::class)
-    fun doGetStream(url: String, headers: Map<String, String>?, tag: String): InputStream? {
+    fun doGetStream(url: String, headers: Map<String, String>?, tag: String?): InputStream? {
         val resp = execute(buildRequest(url, headers, tag))
         if (resp.isSuccessful) {
             return resp.body?.byteStream()
@@ -94,7 +94,7 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
         url: String,
         headers: Map<String, String>?,
         params: Map<String, String?>?,
-        tag: String
+        tag: String?
     ): Request {
         val requestBuilder = Request.Builder().url(url).tag(tag)
         headers?.let {
@@ -113,7 +113,7 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
         url: String,
         headers: Map<String, String>?,
         params: Map<String, String?>?,
-        tag: String
+        tag: String?
     ): String? {
         val resp = execute(buildFormRequest(url, headers, params, tag))
         return if (resp.isSuccessful) {
@@ -127,7 +127,7 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
         url: String,
         headers: Map<String, String>?,
         params: Map<String, String?>?,
-        tag: String,
+        tag: String?,
         callback: Callback
     ) {
         executeAsync(buildFormRequest(url, headers, params, tag), callback)
@@ -137,7 +137,7 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
         url: String,
         headers: Map<String, String>?,
         postJsonBody: String,
-        tag: String
+        tag: String?
     ): Request {
         val requestBuilder = Request.Builder().url(url).tag(tag)
             .post(postJsonBody.toRequestBody("application/json".toMediaTypeOrNull()))
@@ -153,7 +153,7 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
         url: String,
         headers: Map<String, String>?,
         postJsonBody: String,
-        tag: String
+        tag: String?
     ): String? {
         val resp = execute(buildJsonRequest(url, headers, postJsonBody, tag))
         return if (resp.isSuccessful) {
@@ -167,7 +167,7 @@ class FileLoaderClientProxy(private val client: OkHttpClient? = null) {
         url: String,
         headers: Map<String, String>?,
         postJsonBody: String,
-        tag: String,
+        tag: String?,
         callback: Callback
     ) {
         executeAsync(buildJsonRequest(url, headers, postJsonBody, tag), callback)
