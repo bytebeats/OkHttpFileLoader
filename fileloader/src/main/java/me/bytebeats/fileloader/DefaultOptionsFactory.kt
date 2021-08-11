@@ -1,5 +1,10 @@
 package me.bytebeats.fileloader
 
+import me.bytebeats.fileloader.upload.parser.IResponseParser
+import me.bytebeats.fileloader.upload.parser.ParsedResult
+import me.bytebeats.fileloader.upload.parser.StringResponseParser
+import me.bytebeats.fileloader.upload.uploader.IUploader
+import me.bytebeats.fileloader.upload.uploader.OkHttpUploader
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -21,6 +26,16 @@ object DefaultOptionsFactory {
     private fun createDefaultThreadFactory(priority: Int): DefaultThreadFactory =
         DefaultThreadFactory(priority)
 
+    fun <T> createDefaultUploader(): IUploader<T> = OkHttpUploader()
+
+    fun <T> createDefaultResponseProcessor(): IResponseParser<T> = object : IResponseParser<T> {
+        override fun parse(response: T): ParsedResult<T> {
+            return object : ParsedResult<T>(response) {
+                override fun isSuccessful(): Boolean = false
+                override fun message(): String? = null
+            }
+        }
+    }
 
     private class DefaultThreadFactory(private val priority: Int) : ThreadFactory {
         private val threadGroup by lazy { Thread.currentThread().threadGroup }

@@ -1,9 +1,10 @@
-package me.bytebeats.fileloader.download
+package me.bytebeats.fileloader.upload
 
 import android.content.Context
 import me.bytebeats.fileloader.DefaultOptionsFactory
 import me.bytebeats.fileloader.StorageUtil
-import java.io.File
+import me.bytebeats.fileloader.upload.parser.IResponseParser
+import me.bytebeats.fileloader.upload.uploader.IUploader
 import java.util.concurrent.Executor
 
 /**
@@ -11,16 +12,18 @@ import java.util.concurrent.Executor
  * E-mail: happychinapc@gmail.com
  * Quote: Peasant. Educated. Worker
  */
-class DownloadOptions private constructor(builder: Builder) {
+class FileUploadOptions<T> private constructor(builder: Builder<T>) {
     private val mContext = builder.context
     val mTaskExecutor = builder.taskExecutor
     private val mUsingInjectedExecutor = builder.usingInjectedExecutor
-    val mCacheDir = builder.cacheDir
+    val mUploader = builder.uploader
+    val mResponseParser = builder.responseParser
 
-    class Builder(
+    class Builder<T>(
         val context: Context,
         var taskExecutor: Executor? = null,
-        var cacheDir: File? = null,
+        var uploader: IUploader<T>? = null,
+        var responseParser: IResponseParser<T>? = null,
         private var threadPoolSize: Int = StorageUtil.DEFAULT_THREAD_POOS_SIZE,
     ) {
         var threadPriority: Int = StorageUtil.DEFAULT_THREAD_PRIORITY
@@ -36,9 +39,9 @@ class DownloadOptions private constructor(builder: Builder) {
         var usingInjectedExecutor: Boolean = false
             private set
 
-        fun build(): DownloadOptions {
+        fun build(): FileUploadOptions<T> {
             ensureParametersValid()
-            return DownloadOptions(this)
+            return FileUploadOptions(this)
         }
 
         private fun ensureParametersValid() {
@@ -47,8 +50,11 @@ class DownloadOptions private constructor(builder: Builder) {
             } else {
                 usingInjectedExecutor = true
             }
-            if (cacheDir == null) {
-                cacheDir = StorageUtil.getOwnCacheDirectory(context, "Downloads")
+            if (uploader == null) {
+                uploader = DefaultOptionsFactory.createDefaultUploader()
+            }
+            if (responseParser == null) {
+                responseParser = DefaultOptionsFactory.createDefaultResponseProcessor()
             }
         }
     }
