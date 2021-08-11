@@ -51,11 +51,31 @@ class FileDownloadManager private constructor(context: Context) {
     private val mDownloadDispatcher by lazy {
         object : OnDownloadListener {
             override fun onFailed(task: FileDownloadTask, errorType: ErrorType, message: String?) {
-
+                val downloadListener = mDownloadListeners.remove(task)
+                mProgressListeners.remove(task)
+                synchronized(mTasks) {
+                    mTasks.remove(task)
+                }
+                downloadListener?.let {
+                    if (task.isSyncLoading) {
+                        it.onFailed(task, errorType, message)
+                    } else {
+                        mainHandler.post { it.onFailed(task, errorType, message) }
+                    }
+                }
             }
 
             override fun onSucceed(task: FileDownloadTask, location: File) {
-
+                val downloadListener = mDownloadListeners.remove(task)
+                mProgressListeners.remove(task)
+                synchronized(mTasks) { mTasks.remove(task) }
+                downloadListener?.let {
+                    if (task.isSyncLoading) {
+                        it.onSucceed(task, location)
+                    } else {
+                        mainHandler.post { it.onSucceed(task, location) }
+                    }
+                }
             }
         }
     }
@@ -85,9 +105,9 @@ class FileDownloadManager private constructor(context: Context) {
         type: FileType,
         id: String?,
         url: String,
-        progressAware: ProgressAware?,
-        onDownloadListener: OnDownloadListener?,
-        onProgressListener: OnDownloadProgressListener?
+        progressAware: ProgressAware? = null,
+        onDownloadListener: OnDownloadListener? = null,
+        onProgressListener: OnDownloadProgressListener? = null
     ) {
         ensureOptions()
         synchronized(mTasks) {
@@ -99,17 +119,44 @@ class FileDownloadManager private constructor(context: Context) {
             mTasks.add(task)
             onDownloadListener?.let { mDownloadListeners[task] = it }
             onProgressListener?.let { mProgressListeners[task] = it }
-            // TODO: 2021/8/10 progressaware
+            progressAware?.let { prepareUpdateProgressTaskFor(it, downloadInfo.id) }
             mOptions?.mTaskExecutor?.execute(task)
         }
     }
 
+    private fun prepareUpdateProgressTaskFor(progressAware: ProgressAware, downloadInfoId: String) {
+        mCachedKeysForProgressAware[progressAware.id()] = downloadInfoId
+    }
+
     fun getFileDownloadInfoIdFromProgressAware(progressAware: ProgressAware): String? {
-        return ""
+        return mCachedKeysForProgressAware[progressAware.id()]
     }
 
     fun cancelUpdateProgressTaskFor(progressAware: ProgressAware) {
+        mCachedKeysForProgressAware.remove(progressAware.id())
+    }
 
+    fun downloadSync(
+        id: String?,
+        url: String,
+        cacheFile: File? = null,
+        progressAware: ProgressAware? = null,
+        progressListener: OnDownloadProgressListener? = null
+    ): File? {
+        ensureOptions()
+        val syncDownloadListener = SyncDownloadListener()
+        var file = cacheFile
+        if (file == null) {
+            file = generateCacheFile(url, FileType.OTHER)
+        }
+        val downloadInfo =
+            FileDownloadInfo(id!!, url, file, syncDownloadListener, progressListener)
+        val task = FileDownloadTask(downloadInfo, this, progressAware)
+        task.isSyncLoading = true
+        mDownloadListeners[task] = syncDownloadListener
+        progressListener?.let { mProgressListeners[task] = it }
+        task.run()
+        return syncDownloadListener.resultFile()
     }
 
     private fun generateCacheFile(url: String, type: FileType): File {
@@ -130,6 +177,7 @@ class FileDownloadManager private constructor(context: Context) {
         return "${url.hashCode()}_${System.currentTimeMillis()}"
     }
 
+
     companion object {
         private var instance: FileDownloadManager? = null
         fun getInstance(context: Context): FileDownloadManager {
@@ -138,5 +186,19 @@ class FileDownloadManager private constructor(context: Context) {
             }
             return instance!!
         }
+    }
+
+    private class SyncDownloadListener : OnDownloadListener {
+        private var resultFile: File? = null
+
+        override fun onFailed(task: FileDownloadTask, errorType: ErrorType, message: String?) {
+
+        }
+
+        override fun onSucceed(task: FileDownloadTask, location: File) {
+            resultFile = task.downloadInfo.location
+        }
+
+        fun resultFile(): File? = resultFile
     }
 }
