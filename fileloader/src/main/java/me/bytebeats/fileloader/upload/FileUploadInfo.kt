@@ -11,10 +11,17 @@ import me.bytebeats.fileloader.upload.listener.OnUploadProgressListener
 data class FileUploadInfo<T>(
     val params: Map<String, String>?,
     val id: String,
-    val filePath: String,
-    val mimeType: String,
+    private val filePath: String,
+    val mimeType: String?,
     val url: String,
     val options: UploadOptions<T>? = null,
     val onUploadListener: OnUploadListener<T>? = null,
     val onUploadProgressListener: OnUploadProgressListener? = null
-)
+) {
+    var preprocessedFile: String? = null//temporary file
+
+    fun originalFilePath(): String = filePath
+
+    fun uploadFilePath(): String =
+        if (preprocessedFile?.trim().isNullOrEmpty()) filePath else preprocessedFile!!
+}

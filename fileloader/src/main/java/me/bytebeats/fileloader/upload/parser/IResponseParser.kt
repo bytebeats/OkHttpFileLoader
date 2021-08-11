@@ -9,5 +9,5 @@ import kotlin.jvm.Throws
  */
 interface IResponseParser<T> {
     @Throws(Exception::class)
-    fun parse(response: String): ParsedResult<T>
+    fun parse(response: T): ParsedResult<T>
 }
