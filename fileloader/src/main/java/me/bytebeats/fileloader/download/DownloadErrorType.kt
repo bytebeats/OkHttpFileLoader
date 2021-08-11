@@ -5,6 +5,6 @@ package me.bytebeats.fileloader.download
  * E-mail: happychinapc@gmail.com
  * Quote: Peasant. Educated. Worker
  */
-enum class ErrorType {
+enum class DownloadErrorType {
     NETWORK, INVALID_URL, OTHER
 }

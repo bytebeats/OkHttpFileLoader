@@ -1,6 +1,6 @@
 package me.bytebeats.fileloader.download.listener
 
-import me.bytebeats.fileloader.download.ErrorType
+import me.bytebeats.fileloader.download.DownloadErrorType
 import me.bytebeats.fileloader.download.FileDownloadTask
 import java.io.File
 
@@ -11,5 +11,5 @@ import java.io.File
  */
 interface OnDownloadListener {
     fun onSucceed(task: FileDownloadTask, location: File)
-    fun onFailed(task: FileDownloadTask, errorType: ErrorType, message: String?)
+    fun onFailed(task: FileDownloadTask, errorType: DownloadErrorType, message: String?)
 }

@@ -50,7 +50,7 @@ class FileDownloadManager private constructor(context: Context) {
 
     private val mDownloadDispatcher by lazy {
         object : OnDownloadListener {
-            override fun onFailed(task: FileDownloadTask, errorType: ErrorType, message: String?) {
+            override fun onFailed(task: FileDownloadTask, errorType: DownloadErrorType, message: String?) {
                 val downloadListener = mDownloadListeners.remove(task)
                 mProgressListeners.remove(task)
                 synchronized(mTasks) {
@@ -191,7 +191,7 @@ class FileDownloadManager private constructor(context: Context) {
     private class SyncDownloadListener : OnDownloadListener {
         private var resultFile: File? = null
 
-        override fun onFailed(task: FileDownloadTask, errorType: ErrorType, message: String?) {
+        override fun onFailed(task: FileDownloadTask, errorType: DownloadErrorType, message: String?) {
 
         }
 

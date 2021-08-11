@@ -59,7 +59,7 @@ class FileDownloadTask(
         try {
             request = Request.Builder().url(downloadInfo.url).tag(generateTag(downloadInfo)).build()
         } catch (ignore: Exception) {
-            downloadListener?.onFailed(this, ErrorType.INVALID_URL, ignore.message)
+            downloadListener?.onFailed(this, DownloadErrorType.INVALID_URL, ignore.message)
             return
         }
         try {
@@ -84,12 +84,12 @@ class FileDownloadTask(
                 fos.close()
                 downloadListener?.onSucceed(this, downloadInfo.location)
             } else {
-                downloadListener?.onFailed(this, ErrorType.OTHER, resp.message)
+                downloadListener?.onFailed(this, DownloadErrorType.OTHER, resp.message)
             }
         } catch (ignore: IOException) {
-            downloadListener?.onFailed(this, ErrorType.NETWORK, ignore.message)
+            downloadListener?.onFailed(this, DownloadErrorType.NETWORK, ignore.message)
         } catch (ignore: Exception) {
-            downloadListener?.onFailed(this, ErrorType.NETWORK, ignore.message)
+            downloadListener?.onFailed(this, DownloadErrorType.NETWORK, ignore.message)
         }
         progressAware?.let {
             downloadManager.cancelUpdateProgressTaskFor(it)
