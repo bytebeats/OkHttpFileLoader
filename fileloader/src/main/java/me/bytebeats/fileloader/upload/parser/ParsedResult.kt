@@ -5,7 +5,7 @@ package me.bytebeats.fileloader.upload.parser
  * E-mail: happychinapc@gmail.com
  * Quote: Peasant. Educated. Worker
  */
-abstract class ParsedResult<T>(private val data: T) {
+abstract class ParsedResult<T>(val data: T) {
     abstract fun isSuccessful(): Boolean
     abstract fun message(): String?
 }
